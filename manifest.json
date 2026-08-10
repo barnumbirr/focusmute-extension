@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "FocusMute",
+  "version": "0.9.3",
+  "description": "Syncs browser meeting mute state to FocusMute LED indicators",
+  "minimum_chrome_version": "116",
+  "permissions": ["storage"],
+  "host_permissions": ["http://127.0.0.1/*"],
+  "background": {
+    "scripts": ["service-worker.js"],
+    "service_worker": "service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content-scripts/meet.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "focusmute@barnumbirr.com",
+      "strict_min_version": "120.0",
+      "update_url": "https://raw.githubusercontent.com/barnumbirr/focusmute-extension/main/updates.json",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}

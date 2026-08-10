@@ -1,0 +1,124 @@
+name: Release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  build:
+    name: Build extension zip
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Install web-ext
+        run: npm install --global web-ext@8
+
+      - name: Build zip
+        run: web-ext build --source-dir . --artifacts-dir web-ext-artifacts --overwrite-dest
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: extension-zip
+          path: web-ext-artifacts/*.zip
+
+  firefox:
+    name: Publish to Firefox (AMO)
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment: amo
+    if: vars.AMO_ENABLED == 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      # `cmd: sign` requires a built zip/xpi as `source` ("Source must be the
+      # zip/xpi file of the add-on"), not a source directory — so build first
+      # and feed sign from the build step's output.
+      - name: Build extension zip
+        id: web-ext-build
+        uses: kewisch/action-web-ext@fe10addf5d5e5ba6b78ffde720dd488a27d10e8c # v1.3
+        with:
+          cmd: build
+          source: .
+
+      - name: Sign and upload to AMO
+        uses: kewisch/action-web-ext@fe10addf5d5e5ba6b78ffde720dd488a27d10e8c # v1.3
+        with:
+          cmd: sign
+          source: ${{ steps.web-ext-build.outputs.target }}
+          channel: unlisted
+          apiKey: ${{ secrets.AMO_JWT_ISSUER }}
+          apiSecret: ${{ secrets.AMO_JWT_SECRET }}
+
+      - name: Rename signed xpi to the asset name updates.json points at
+        # AMO names the signed file <addon-prefix>-<version>.xpi; updates.json
+        # promises releases/download/<tag>/focusmute-<version>.xpi.
+        run: mv web-ext-artifacts/*.xpi "web-ext-artifacts/focusmute-${GITHUB_REF_NAME#v}.xpi"
+
+      - name: Upload signed xpi artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: firefox-xpi
+          path: web-ext-artifacts/*.xpi
+
+  chrome:
+    name: Publish to Chrome Web Store
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment: chrome
+    if: vars.CWS_ENABLED == 'true'
+    steps:
+      - name: Download zip
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: extension-zip
+
+      - name: Upload to Chrome Web Store
+        uses: mnao305/chrome-extension-upload@4008e29e13c144d0f6725462cbd49b7c291b4928 # v5.0.0
+        with:
+          # web-ext build derives the zip name from the manifest `name` field:
+          # "FocusMute" → focusmute-<version>.zip
+          file-path: focusmute-*.zip
+          extension-id: ${{ secrets.CWS_EXTENSION_ID }}
+          client-id: ${{ secrets.CWS_CLIENT_ID }}
+          client-secret: ${{ secrets.CWS_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CWS_REFRESH_TOKEN }}
+          publish: true
+
+  github-release:
+    name: Create GitHub Release
+    needs: [build, firefox, chrome]
+    # Run even if firefox/chrome were skipped (not enabled) — but never
+    # publish a release when an enabled store job actually failed, else
+    # the tag ships without the xpi that updates.json promises.
+    if: always() && needs.build.result == 'success' && needs.firefox.result != 'failure' && needs.chrome.result != 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+        with:
+          files: |
+            artifacts/extension-zip/*.zip
+            artifacts/firefox-xpi/*.xpi
+          generate_release_notes: true

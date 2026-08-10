@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "focusmute@barnumbirr.com": {
+      "updates": [
+        {
+          "version": "0.9.3",
+          "update_link": "https://github.com/barnumbirr/focusmute-extension/releases/download/v0.9.3/focusmute-0.9.3.xpi"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,29 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: web-ext lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Install web-ext
+        run: npm install --global web-ext@8
+
+      - name: Lint extension
+        # --self-hosted permits gecko.update_url, which is required for
+        # self-distributed (AMO unlisted) add-ons and forbidden for listed ones.
+        run: web-ext lint --source-dir . --self-hosted
