@@ -23,7 +23,10 @@ jobs:
       - name: Install web-ext
         run: npm install --global web-ext@8
 
+      - name: Run content-script tests
+        run: node --test "tests/*.test.js"
+
       - name: Lint extension
         # --self-hosted permits gecko.update_url, which is required for
         # self-distributed (AMO unlisted) add-ons and forbidden for listed ones.
-        run: web-ext lint --source-dir . --self-hosted
+        run: web-ext lint --source-dir . --self-hosted --ignore-files "tests" "tests/**"

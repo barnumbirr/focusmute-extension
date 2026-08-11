@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "matches": ["https://meet.google.com/*"],
-      "js": ["content-scripts/meet.js"],
+      "js": ["content-scripts/common.js", "content-scripts/meet.js"],
       "run_at": "document_idle"
     },
     {
@@ -23,7 +23,7 @@
         "https://teams.cloud.microsoft/*"
       ],
       "all_frames": true,
-      "js": ["content-scripts/teams.js"],
+      "js": ["content-scripts/common.js", "content-scripts/teams.js"],
       "run_at": "document_idle"
     }
   ],

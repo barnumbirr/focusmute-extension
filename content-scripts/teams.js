@@ -1,25 +1,9 @@
 // FocusMute — Microsoft Teams content script
 //
-// Detects mute state changes in the Teams web client and sends them to the
-// service worker. Uses three detection strategies:
-// 1. MutationObserver on the toolbar mute button (primary)
-// 2. data-tid selectors with aria-pressed / aria-label state reads
-// 3. Periodic polling (safety net, also reattaches observer on re-render)
-//
-// Teams renders the meeting UI in an iframe in some variants, so this script
-// runs with all_frames: true; frames without a toolbar just idle on the poll.
-
-const PLATFORM = "teams";
-const POLL_INTERVAL_MS = 3000;
-const MAX_WAIT_MS = 30000;
-const INITIAL_POLL_MS = 500;
-
-let lastMuted = null;
-let observer = null;
-let pollTimer = null;
-let observedButton = null;
-
-// ── Mute state detection ──
+// Platform-specific detection only; the observer/poll/send lifecycle lives
+// in common.js (loaded before this file by the manifest). Runs with
+// all_frames: true because Teams variants can host the meeting UI in an
+// iframe; frames without a toolbar idle on the slow poll.
 
 /**
  * Find the Teams microphone toggle. Captured from the live consumer client
@@ -79,110 +63,10 @@ function readMuteState(button) {
   return null;
 }
 
-function sendState(muted) {
-  if (muted === null || muted === lastMuted) return;
-  lastMuted = muted;
-  console.debug("[FocusMute] teams mute state:", muted);
-  chrome.runtime.sendMessage({
-    type: "mute_state",
-    platform: PLATFORM,
-    muted: muted,
-  }).catch(() => {});
-}
-
-// ── MutationObserver (primary) ──
-
-function startObserver(button) {
-  if (observer) observer.disconnect();
-
-  observedButton = button;
-
-  observer = new MutationObserver(() => {
-    const muted = readMuteState(button);
-    sendState(muted);
-  });
-
-  observer.observe(button, {
-    attributes: true,
-    attributeFilter: ["data-cid", "aria-pressed", "aria-label", "title"],
-  });
-
-  // Read initial state
-  const muted = readMuteState(button);
-  sendState(muted);
-}
-
-// ── Polling safety net ──
-//
-// Polls every 3 seconds to catch missed mutations. Also reattaches the
-// MutationObserver when Teams re-renders the toolbar (React replaces the
-// observed DOM node with a new one).
-
-function startPolling() {
-  if (pollTimer) return;
-  pollTimer = setInterval(() => {
-    const button = findMuteButton();
-    if (!button) return;
-
-    const muted = readMuteState(button);
-    sendState(muted);
-
-    // Reattach observer if the button changed (toolbar re-rendered)
-    if (button !== observedButton) {
-      console.log("[FocusMute] Teams mute button changed, reattaching observer");
-      startObserver(button);
-    }
-  }, POLL_INTERVAL_MS);
-}
-
-function stopPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
-}
-
-// ── Initialization ──
-
-/**
- * Wait for the Teams toolbar to render (mute button appears), then attach
- * observer. Uses exponential backoff polling to avoid hammering the DOM.
- */
-function waitForToolbar() {
-  let elapsed = 0;
-  let delay = INITIAL_POLL_MS;
-
-  function check() {
-    const button = findMuteButton();
-    if (button) {
-      console.log("[FocusMute] Teams mute button found");
-      startObserver(button);
-      startPolling();
-      return;
-    }
-
-    elapsed += delay;
-    if (elapsed >= MAX_WAIT_MS) {
-      // No toolbar in this frame (yet) — fall back to the slow poll, which
-      // also covers meetings started long after page load.
-      startPolling();
-      return;
-    }
-
-    delay = Math.min(delay * 1.5, 2000);
-    setTimeout(check, delay);
-  }
-
-  check();
-}
-
-// ── Cleanup ──
-
-window.addEventListener("beforeunload", () => {
-  if (observer) observer.disconnect();
-  stopPolling();
+initFocusMute({
+  platform: "teams",
+  findMuteButton: findMuteButton,
+  readMuteState: readMuteState,
+  observedAttributes: ["data-cid", "aria-pressed", "aria-label", "title"],
+  warnOnTimeout: false,
 });
-
-// ── Start ──
-
-waitForToolbar();
