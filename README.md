@@ -11,6 +11,7 @@ Companion browser extension for [FocusMute](https://github.com/barnumbirr/focusm
 ## Supported Meeting Apps
 
 - Google Meet
+- Microsoft Teams (web client: `teams.microsoft.com`, `teams.live.com`, `teams.cloud.microsoft`)
 
 ## Requirements
 
@@ -26,11 +27,11 @@ Companion browser extension for [FocusMute](https://github.com/barnumbirr/focusm
 
 3. **Configure the port**: Right-click the extension icon > "Options" (or go to the extension's settings page). Set the same port as in FocusMute.
 
-4. **Join a Google Meet call** — the extension detects mute/unmute and forwards the state to FocusMute. Your Scarlett LEDs will reflect the browser mute state.
+4. **Join a Google Meet or Microsoft Teams call** — the extension detects mute/unmute and forwards the state to FocusMute. Your Scarlett LEDs will reflect the browser mute state.
 
 ## How It Works
 
-1. A content script (`meet.js`) monitors the Google Meet mute button using a `MutationObserver` on the `data-is-muted` attribute (filtered to the microphone button via `aria-label`), with `aria-label` text matching as a fallback and periodic polling as a safety net. The observer reattaches automatically if Meet re-renders the toolbar.
+1. A content script per platform monitors the meeting toolbar's mute button with a `MutationObserver`, plus periodic polling as a safety net; the observer reattaches automatically if the toolbar re-renders. `meet.js` watches Google Meet's `data-is-muted` attribute (filtered to the microphone button via `aria-label`, with `aria-label` text matching as fallback). `teams.js` finds the Teams toggle via `#mic-button` (in-meeting toolbar) or `data-tid` (`toggle-mute` on the prejoin switch, kept for the enterprise client) and reads state from `data-cid`/`aria-pressed` (locale-independent) with English label/title matching as fallback; it runs in all frames because Teams variants can host the meeting UI in an iframe.
 
 2. The service worker forwards mute state changes to `http://127.0.0.1:<port>` via `fetch()` POST with a JSON body. Uses plain HTTP (not WebSocket) because Firefox forces TLS on WebSocket connections from extension background scripts, but allows plain `http://127.0.0.1` via `fetch()`.
 

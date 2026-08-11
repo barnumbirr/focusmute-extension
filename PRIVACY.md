@@ -4,7 +4,7 @@
 
 ## What the extension does
 
-- Detects mute/unmute state on Google Meet pages by reading the mute button's DOM attributes
+- Detects mute/unmute state on Google Meet and Microsoft Teams pages by reading the mute button's DOM attributes
 - Sends the mute state (`true`/`false`) to the FocusMute desktop app via HTTP POST to `127.0.0.1` (localhost only)
 - Stores the configured port number in `chrome.storage.local` (browser-local, never transmitted)
 
@@ -13,7 +13,7 @@
 - Does not collect browsing history, cookies, or personal information
 - Does not transmit any data to external servers — mute-state communication is strictly localhost (see "Automatic updates" below)
 - Does not track usage, analytics, or telemetry
-- Does not access any page content beyond the Meet mute button element
+- Does not access any page content beyond the meeting mute button element
 
 ## Automatic updates
 

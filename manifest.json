@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "FocusMute",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Syncs browser meeting mute state to FocusMute LED indicators",
   "minimum_chrome_version": "116",
   "permissions": ["storage"],
@@ -14,6 +14,16 @@
     {
       "matches": ["https://meet.google.com/*"],
       "js": ["content-scripts/meet.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://teams.microsoft.com/*",
+        "https://teams.live.com/*",
+        "https://teams.cloud.microsoft/*"
+      ],
+      "all_frames": true,
+      "js": ["content-scripts/teams.js"],
       "run_at": "document_idle"
     }
   ],
