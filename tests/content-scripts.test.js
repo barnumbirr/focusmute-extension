@@ -40,6 +40,14 @@ test("meet.js registers with common.js correctly", () => {
   assert.deepEqual(meet.observedAttributes, ["data-is-muted", "aria-label"]);
   assert.equal(typeof meet.findMuteButton, "function");
   assert.equal(typeof meet.readMuteState, "function");
+  // Reverse sync is a Meet capability…
+  assert.equal(typeof meet.applyMuteTarget, "function");
+});
+
+test("teams.js does not offer reverse sync", () => {
+  // …and deliberately not a Teams one (Meet-only per the March research).
+  const teams = loadPlatform("teams.js");
+  assert.equal(teams.applyMuteTarget, undefined);
 });
 
 test("meet.js readMuteState", () => {

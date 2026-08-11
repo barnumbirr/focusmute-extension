@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Microsoft Teams support (`teams.microsoft.com`, `teams.live.com`,
   `teams.cloud.microsoft`) — mute state detected from the meeting toolbar's
   `data-tid` toggle via `aria-pressed`, sent as `platform: "teams"`.
+- Reverse sync (Google Meet): when enabled in FocusMute, hotkey/tray mute
+  changes click the meeting's own mute button. The worker polls the app
+  with `poll_actions` only while a Meet tab is open.
 
 ## [0.9.3] - 2026-08-10
 

@@ -76,6 +76,53 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   }
 });
 
+// ── Reverse sync (app → browser) ──
+//
+// Content scripts that can APPLY a mute state (currently Meet) open a
+// long-lived port. While at least one such port is connected, the worker
+// polls the app for pending user-initiated mute actions and forwards them.
+// The app answers {"type":"pending_action","action":"mute"|"unmute"|null};
+// actions are only produced when reverse sync is enabled in FocusMute.
+
+const REVERSE_POLL_MS = 500;
+
+let reversePorts = [];
+let reverseTimer = null;
+
+chrome.runtime.onConnect.addListener((port) => {
+  if (!port.name.startsWith("focusmute-")) return;
+  reversePorts.push(port);
+  port.onDisconnect.addListener(() => {
+    reversePorts = reversePorts.filter((p) => p !== port);
+    if (reversePorts.length === 0) stopReversePoll();
+  });
+  if (reversePorts.length === 1) startReversePoll();
+});
+
+function startReversePoll() {
+  stopReversePoll();
+  reverseTimer = setInterval(async () => {
+    const resp = await postMessage({ type: "poll_actions" });
+    const action = resp && resp.action;
+    if (action !== "mute" && action !== "unmute") return;
+    const muted = action === "mute";
+    for (const port of reversePorts) {
+      try {
+        port.postMessage({ type: "apply_mute", muted: muted });
+      } catch {
+        // Port died between filter and post — the disconnect handler cleans up.
+      }
+    }
+  }, REVERSE_POLL_MS);
+}
+
+function stopReversePoll() {
+  if (reverseTimer) {
+    clearInterval(reverseTimer);
+    reverseTimer = null;
+  }
+}
+
 // ── Start keepalive on load ──
 
 startKeepalive();

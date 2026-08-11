@@ -21,6 +21,7 @@ function initFocusMute({
   readMuteState,
   observedAttributes,
   warnOnTimeout,
+  applyMuteTarget,
 }) {
   let lastMuted = null;
   let observer = null;
@@ -111,6 +112,18 @@ function initFocusMute({
     if (observer) observer.disconnect();
     if (pollTimer) clearInterval(pollTimer);
   });
+
+  // Reverse sync: platforms that can APPLY a mute state to the page open a
+  // long-lived port; the service worker forwards pending app actions to it
+  // (and only polls the app while such a port is connected).
+  if (applyMuteTarget) {
+    const port = chrome.runtime.connect({ name: `focusmute-${platform}` });
+    port.onMessage.addListener((msg) => {
+      if (msg && msg.type === "apply_mute") {
+        applyMuteTarget(msg.muted === true);
+      }
+    });
+  }
 
   waitForToolbar();
 }

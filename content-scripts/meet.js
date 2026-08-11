@@ -48,10 +48,26 @@ function readMuteState(button) {
   return null;
 }
 
+/**
+ * Apply a target mute state from the app (reverse sync): click Meet's mute
+ * button when the page's current state differs. The resulting DOM mutation
+ * flows back through the normal observer path; the app's idempotency gate
+ * treats that echo as a no-op, so no suppression flag is needed here.
+ */
+function applyMuteTarget(muted) {
+  const button = findMuteButton();
+  const current = readMuteState(button);
+  if (button && current !== null && current !== muted) {
+    console.debug("[FocusMute] meet reverse sync:", muted ? "muting" : "unmuting");
+    button.click();
+  }
+}
+
 initFocusMute({
   platform: "meet",
   findMuteButton: findMuteButton,
   readMuteState: readMuteState,
   observedAttributes: ["data-is-muted", "aria-label"],
   warnOnTimeout: true,
+  applyMuteTarget: applyMuteTarget,
 });
