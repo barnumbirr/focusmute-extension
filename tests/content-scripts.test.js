@@ -44,10 +44,11 @@ test("meet.js registers with common.js correctly", () => {
   assert.equal(typeof meet.applyMuteTarget, "function");
 });
 
-test("teams.js does not offer reverse sync", () => {
-  // …and deliberately not a Teams one (Meet-only per the March research).
+test("teams.js offers reverse sync too", () => {
+  // The locale-independent finders from the 2026-08-11 probe make Teams
+  // clicking as safe as Meet's; unreadable state means no click.
   const teams = loadPlatform("teams.js");
-  assert.equal(teams.applyMuteTarget, undefined);
+  assert.equal(typeof teams.applyMuteTarget, "function");
 });
 
 test("meet.js readMuteState", () => {

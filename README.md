@@ -57,13 +57,13 @@ A keepalive ping is sent every 20 seconds:
 {"type": "ping"}
 ```
 
-While a Google Meet tab is open, the service worker also polls for reverse-sync actions every 500 ms:
+While a meeting tab is open, the service worker also polls for reverse-sync actions every 500 ms:
 
 ```json
 {"type": "poll_actions"}
 ```
 
-to which the server replies `{"type": "pending_action", "action": "mute"}` (or `"unmute"`, or `null` when nothing is pending). When FocusMute's `browser_sync_reverse` setting is enabled, hotkey/tray mute changes surface here and the Meet content script clicks the meeting's own mute button; the resulting state change flows back through the normal detection path, where FocusMute's idempotency gate treats it as a no-op.
+to which the server replies `{"type": "pending_action", "action": "mute"}` (or `"unmute"`, or `null` when nothing is pending). When FocusMute's `browser_sync_reverse` setting is enabled, hotkey/tray mute changes surface here and the content script clicks the meeting's own mute button (Meet and Teams); the resulting state change flows back through the normal detection path, where FocusMute's idempotency gate treats it as a no-op. A mute state the script cannot read is never clicked blind.
 
 The server rejects requests from web page origins (CORS protection) — only browser extension origins and origin-less requests are allowed.
 

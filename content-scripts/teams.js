@@ -63,10 +63,27 @@ function readMuteState(button) {
   return null;
 }
 
+/**
+ * Apply a target mute state from the app (reverse sync): click the Teams
+ * toggle when the page's current state differs. Finding the control is
+ * locale-independent (#mic-button / data-tid); when the STATE can't be read
+ * (e.g. non-English consumer client, where only the label carries it) this
+ * deliberately does nothing rather than clicking blind.
+ */
+function applyMuteTarget(muted) {
+  const button = findMuteButton();
+  const current = readMuteState(button);
+  if (button && current !== null && current !== muted) {
+    console.debug("[FocusMute] teams reverse sync:", muted ? "muting" : "unmuting");
+    button.click();
+  }
+}
+
 initFocusMute({
   platform: "teams",
   findMuteButton: findMuteButton,
   readMuteState: readMuteState,
   observedAttributes: ["data-cid", "aria-pressed", "aria-label", "title"],
   warnOnTimeout: false,
+  applyMuteTarget: applyMuteTarget,
 });
