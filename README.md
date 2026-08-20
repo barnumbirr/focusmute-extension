@@ -12,6 +12,7 @@ Companion browser extension for [FocusMute](https://github.com/barnumbirr/focusm
 
 - Google Meet
 - Microsoft Teams (web client: `teams.microsoft.com`, `teams.live.com`, `teams.cloud.microsoft`)
+- Proton Meet (`meet.proton.me`)
 
 ## Requirements
 
@@ -27,11 +28,11 @@ Companion browser extension for [FocusMute](https://github.com/barnumbirr/focusm
 
 3. **Configure the port**: Right-click the extension icon > "Options" (or go to the extension's settings page). Set the same port as in FocusMute.
 
-4. **Join a Google Meet or Microsoft Teams call** — the extension detects mute/unmute and forwards the state to FocusMute. Your Scarlett LEDs will reflect the browser mute state.
+4. **Join a Google Meet, Microsoft Teams, or Proton Meet call** — the extension detects mute/unmute and forwards the state to FocusMute. Your Scarlett LEDs will reflect the browser mute state.
 
 ## How It Works
 
-1. A content script per platform monitors the meeting toolbar's mute button with a `MutationObserver`, plus periodic polling as a safety net; the observer reattaches automatically if the toolbar re-renders. `meet.js` watches Google Meet's `data-is-muted` attribute (filtered to the microphone button via `aria-label`, with `aria-label` text matching as fallback). `teams.js` finds the Teams toggle via `#mic-button` (in-meeting toolbar) or `data-tid` (`toggle-mute` on the prejoin switch, kept for the enterprise client) and reads state from `data-cid`/`aria-pressed` (locale-independent) with English label/title matching as fallback; it runs in all frames because Teams variants can host the meeting UI in an iframe.
+1. A content script per platform monitors the meeting toolbar's mute button with a `MutationObserver`, plus periodic polling as a safety net; the observer reattaches automatically if the toolbar re-renders. `meet.js` watches Google Meet's `data-is-muted` attribute (filtered to the microphone button via `aria-label`, with `aria-label` text matching as fallback). `teams.js` finds the Teams toggle via `#mic-button` (in-meeting toolbar) or `data-tid` (`toggle-mute` on the prejoin switch, kept for the enterprise client) and reads state from `data-cid`/`aria-pressed` (locale-independent) with English label/title matching as fallback; it runs in all frames because Teams variants can host the meeting UI in an iframe. `proton.js` finds the Proton Meet toggle by its microphone `aria-label` and reads state from `aria-pressed` (which Proton maps to microphone-enabled, the reverse of Teams) or the component's on/off state classes — both locale-independent — with English label matching as fallback.
 
 2. The service worker forwards mute state changes to `http://127.0.0.1:<port>` via `fetch()` POST with a JSON body. Uses plain HTTP (not WebSocket) because Firefox forces TLS on WebSocket connections from extension background scripts, but allows plain `http://127.0.0.1` via `fetch()`.
 
@@ -63,7 +64,7 @@ While a meeting tab is open, the service worker also polls for reverse-sync acti
 {"type": "poll_actions"}
 ```
 
-to which the server replies `{"type": "pending_action", "action": "mute"}` (or `"unmute"`, or `null` when nothing is pending). When FocusMute's `browser_sync_reverse` setting is enabled, hotkey/tray mute changes surface here and the content script clicks the meeting's own mute button (Meet and Teams); the resulting state change flows back through the normal detection path, where FocusMute's idempotency gate treats it as a no-op. A mute state the script cannot read is never clicked blind.
+to which the server replies `{"type": "pending_action", "action": "mute"}` (or `"unmute"`, or `null` when nothing is pending). When FocusMute's `browser_sync_reverse` setting is enabled, hotkey/tray mute changes surface here and the content script clicks the meeting's own mute button (Meet, Teams, and Proton Meet); the resulting state change flows back through the normal detection path, where FocusMute's idempotency gate treats it as a no-op. A mute state the script cannot read is never clicked blind.
 
 The server rejects requests from web page origins (CORS protection) — only browser extension origins and origin-less requests are allowed.
 

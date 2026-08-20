@@ -98,6 +98,47 @@ test("teams.js readMuteState (vectors captured from the live client)", () => {
   assert.equal(readMuteState(null), null);
 });
 
+test("proton.js registers with common.js correctly", () => {
+  const proton = loadPlatform("proton.js");
+  assert.equal(proton.platform, "proton");
+  assert.deepEqual(proton.observedAttributes, ["aria-pressed", "aria-label", "class"]);
+  assert.equal(typeof proton.findMuteButton, "function");
+  assert.equal(typeof proton.readMuteState, "function");
+  assert.equal(typeof proton.applyMuteTarget, "function");
+});
+
+test("proton.js readMuteState (contract from ProtonMail/WebClients source)", () => {
+  const { readMuteState } = loadPlatform("proton.js");
+  const cases = [
+    // aria-pressed = isMicrophoneEnabled — INVERTED relative to Teams
+    [{ "aria-pressed": "true", "aria-label": "Mute microphone" }, false],
+    [{ "aria-pressed": "false", "aria-label": "Unmute microphone" }, true],
+    // Warning states: aria-pressed absent, state class still present —
+    // a mic with denied permission is effectively muted
+    [
+      {
+        class: "toggle-button-body-off pl-3 rounded-full",
+        "aria-label": "Microphone permission denied",
+      },
+      true,
+    ],
+    // Class-only reads (locale-independent), desktop and mobile variants
+    [{ class: "toggle-button-body-on pl-3" }, false],
+    [{ class: "circle-button circle-button-danger rounded-full" }, true],
+    [{ class: "circle-button circle-button-default rounded-full" }, false],
+    // English label fallback, unmute checked before mute
+    [{ "aria-label": "Unmute microphone" }, true],
+    [{ "aria-label": "Mute microphone" }, false],
+    // Warning label alone carries no state — send nothing
+    [{ "aria-label": "No microphone detected" }, null],
+    [{}, null],
+  ];
+  for (const [attrs, want] of cases) {
+    assert.equal(readMuteState(el(attrs)), want, JSON.stringify(attrs));
+  }
+  assert.equal(readMuteState(null), null);
+});
+
 test('teams.js label fallback checks "unmute" before "mute"', () => {
   const { readMuteState } = loadPlatform("teams.js");
   // A label containing "unmute" must never be read as unmuted just

@@ -1,19 +1,30 @@
 {
   "manifest_version": 3,
   "name": "FocusMute",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Syncs browser meeting mute state to FocusMute LED indicators",
   "minimum_chrome_version": "116",
-  "permissions": ["storage"],
-  "host_permissions": ["http://127.0.0.1/*"],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
   "background": {
-    "scripts": ["service-worker.js"],
+    "scripts": [
+      "service-worker.js"
+    ],
     "service_worker": "service-worker.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://meet.google.com/*"],
-      "js": ["content-scripts/common.js", "content-scripts/meet.js"],
+      "matches": [
+        "https://meet.google.com/*"
+      ],
+      "js": [
+        "content-scripts/common.js",
+        "content-scripts/meet.js"
+      ],
       "run_at": "document_idle"
     },
     {
@@ -23,7 +34,21 @@
         "https://teams.cloud.microsoft/*"
       ],
       "all_frames": true,
-      "js": ["content-scripts/common.js", "content-scripts/teams.js"],
+      "js": [
+        "content-scripts/common.js",
+        "content-scripts/teams.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://meet.proton.me/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "content-scripts/common.js",
+        "content-scripts/proton.js"
+      ],
       "run_at": "document_idle"
     }
   ],
@@ -42,7 +67,9 @@
       "strict_min_version": "120.0",
       "update_url": "https://raw.githubusercontent.com/barnumbirr/focusmute-extension/main/updates.json",
       "data_collection_permissions": {
-        "required": ["none"]
+        "required": [
+          "none"
+        ]
       }
     }
   }

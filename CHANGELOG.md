@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Proton Meet support (`meet.proton.me`), both directions: mute detection
+  and reverse sync. Detection contract taken from Proton's open-source
+  client (`aria-pressed` and the toggle's state classes, both
+  locale-independent).
+
 ## [0.10.0] - 2026-08-11
 
 ### Added

@@ -9,6 +9,10 @@
         {
           "version": "0.10.0",
           "update_link": "https://github.com/barnumbirr/focusmute-extension/releases/download/v0.10.0/focusmute-0.10.0.xpi"
+        },
+        {
+          "version": "0.11.0",
+          "update_link": "https://github.com/barnumbirr/focusmute-extension/releases/download/v0.11.0/focusmute-0.11.0.xpi"
         }
       ]
     }
