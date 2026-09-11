@@ -107,7 +107,7 @@ test("proton.js registers with common.js correctly", () => {
   assert.equal(typeof proton.applyMuteTarget, "function");
 });
 
-test("proton.js readMuteState (contract from ProtonMail/WebClients source)", () => {
+test("proton.js readMuteState (source contract, confirmed on the deployed client)", () => {
   const { readMuteState } = loadPlatform("proton.js");
   const cases = [
     // aria-pressed = isMicrophoneEnabled — INVERTED relative to Teams

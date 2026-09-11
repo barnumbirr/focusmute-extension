@@ -3,9 +3,10 @@
 // Platform-specific detection only; the observer/poll/send lifecycle lives
 // in common.js (loaded before this file by the manifest).
 //
-// Contract verified against Proton's open-source client
-// (ProtonMail/WebClients, applications/meet — ToggleButton.tsx,
-// ParticipantControls.tsx, mediaButtonAriaLabels.ts):
+// Contract taken from Proton's open-source client (ProtonMail/WebClients,
+// applications/meet: ToggleButton.tsx, ParticipantControls.tsx,
+// mediaButtonAriaLabels.ts) and confirmed against the deployed client
+// on 2026-09-11:
 // - toolbar toggle: <button class="toggle-button-body-on|off …"
 //   aria-label="Mute microphone|Unmute microphone" aria-pressed>
 // - aria-pressed = isMicrophoneEnabled — INVERTED relative to Teams:

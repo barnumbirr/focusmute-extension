@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and reverse sync. Detection contract taken from Proton's open-source
   client (`aria-pressed` and the toggle's state classes, both
   locale-independent).
+- Options page lists meeting sites Firefox has not granted access to, with
+  a button to allow them. Firefox leaves sites added by an extension update
+  ungranted, which silently disables detection there.
 
 ## [0.10.0] - 2026-08-11
 

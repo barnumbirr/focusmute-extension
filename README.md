@@ -28,7 +28,9 @@ Companion browser extension for [FocusMute](https://github.com/barnumbirr/focusm
 
 3. **Configure the port**: Right-click the extension icon > "Options" (or go to the extension's settings page). Set the same port as in FocusMute.
 
-4. **Join a Google Meet, Microsoft Teams, or Proton Meet call** — the extension detects mute/unmute and forwards the state to FocusMute. Your Scarlett LEDs will reflect the browser mute state.
+4. **Allow the meeting sites**: Firefox grants an extension access to the sites in its manifest at *install* time only, so a site added by a later update stays blocked and its detection silently does nothing ([Firefox bug 1893232](https://bugzil.la/1893232)). The options page lists any site still waiting for access, with a button to allow them; the same toggles live in `about:addons` > FocusMute > Permissions. After allowing, reload meeting tabs that are already open.
+
+5. **Join a Google Meet, Microsoft Teams, or Proton Meet call** — the extension detects mute/unmute and forwards the state to FocusMute. Your Scarlett LEDs will reflect the browser mute state.
 
 ## How It Works
 

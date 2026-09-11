@@ -23,10 +23,10 @@ jobs:
       - name: Install web-ext
         run: npm install --global web-ext@8
 
-      - name: Run content-script tests
-        # Explicit path rather than a glob — glob args to `node --test`
+      - name: Run tests
+        # Explicit paths rather than a glob: glob arguments to `node --test`
         # are version-sensitive across Node releases.
-        run: node --test tests/content-scripts.test.js
+        run: node --test tests/content-scripts.test.js tests/options.test.js
 
       - name: Lint extension
         # --self-hosted permits gecko.update_url, which is required for
