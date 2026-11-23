@@ -4,7 +4,7 @@ Companion browser extension for [FocusMute](https://github.com/barnumbirr/focusm
 
 ## Supported Browsers
 
-- Firefox 120+
+- Firefox 140+
 - Chrome / Chromium 116+
 - Microsoft Edge 116+
 
