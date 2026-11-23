@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Requires Firefox 140 or later (was 120). Older Firefox versions stay on
+- Requires Firefox 142 or later (was 120). Older Firefox versions stay on
   0.11.0.
 
 ## [0.11.0] - 2026-09-11
