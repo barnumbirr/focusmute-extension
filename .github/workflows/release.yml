@@ -20,20 +20,20 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Install web-ext
-        run: npm install --global web-ext@8
+        run: npm install --global web-ext@10
 
       - name: Build zip
         run: web-ext build --source-dir . --artifacts-dir web-ext-artifacts --overwrite-dest --ignore-files "tests" "tests/**"
 
       - name: Upload zip artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v7
         with:
           name: extension-zip
           path: web-ext-artifacts/*.zip
@@ -45,21 +45,21 @@ jobs:
     environment: amo
     if: vars.AMO_ENABLED == 'true'
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v7
 
       # `cmd: sign` requires a built zip/xpi as `source` ("Source must be the
       # zip/xpi file of the add-on"), not a source directory — so build first
       # and feed sign from the build step's output.
       - name: Build extension zip
         id: web-ext-build
-        uses: kewisch/action-web-ext@fe10addf5d5e5ba6b78ffde720dd488a27d10e8c # v1.3
+        uses: kewisch/action-web-ext@84a13bb9e1b6108c43788ba091c41ca1dba6ad45 # v2.0
         with:
           cmd: build
           source: .
           ignoreFiles: '["tests", "tests/**"]'
 
       - name: Sign and upload to AMO
-        uses: kewisch/action-web-ext@fe10addf5d5e5ba6b78ffde720dd488a27d10e8c # v1.3
+        uses: kewisch/action-web-ext@84a13bb9e1b6108c43788ba091c41ca1dba6ad45 # v2.0
         with:
           cmd: sign
           source: ${{ steps.web-ext-build.outputs.target }}
@@ -73,7 +73,7 @@ jobs:
         run: mv web-ext-artifacts/*.xpi "web-ext-artifacts/focusmute-${GITHUB_REF_NAME#v}.xpi"
 
       - name: Upload signed xpi artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v7
         with:
           name: firefox-xpi
           path: web-ext-artifacts/*.xpi
@@ -86,17 +86,19 @@ jobs:
     if: vars.CWS_ENABLED == 'true'
     steps:
       - name: Download zip
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@v8
         with:
           name: extension-zip
 
       - name: Upload to Chrome Web Store
-        uses: mnao305/chrome-extension-upload@4008e29e13c144d0f6725462cbd49b7c291b4928 # v5.0.0
+        uses: mnao305/chrome-extension-upload@f549d5d654694a7722d6abfa64c97409ad5e64c1 # v7.0.0
         with:
           # web-ext build derives the zip name from the manifest `name` field:
           # "FocusMute" → focusmute-<version>.zip
           file-path: focusmute-*.zip
+          glob: true
           extension-id: ${{ secrets.CWS_EXTENSION_ID }}
+          publisher-id: ${{ secrets.CWS_PUBLISHER_ID }}
           client-id: ${{ secrets.CWS_CLIENT_ID }}
           client-secret: ${{ secrets.CWS_CLIENT_SECRET }}
           refresh-token: ${{ secrets.CWS_REFRESH_TOKEN }}
@@ -112,12 +114,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           files: |
             artifacts/extension-zip/*.zip
